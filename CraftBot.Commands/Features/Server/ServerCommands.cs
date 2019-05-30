@@ -1,14 +1,11 @@
 ﻿using CraftBot.Commands.Features.Server;
 using CraftBot.Helper;
 using CraftBot.Profiles;
-using DSharpPlus;
+
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -30,14 +27,14 @@ namespace CraftBot.Commands.Features
                 {
                     response += $"{(emoji.IsAnimated ? "A" : "N")} {emoji.Name} ({emoji.Id})\n";
                 }
-                _ = await ctx.RespondAsync(response);
+                await ctx.RespondAsync(response);
             }
 
             [Command("features")]
             [RequireGuild]
             public async Task Features(CommandContext ctx)
             {
-                _ = await ctx.RespondAsync(embed: new DiscordEmbedBuilder()
+                await ctx.RespondAsync(embed: new DiscordEmbedBuilder()
                    .WithAuthor($"{ctx.Guild.Name} / Features", null, ctx.Guild.IconUrl)
                    .WithDescription(ctx.Guild.Features.Count == 0 ? "This server has no features" : string.Join("\n", ctx.Guild.Features))
                    );

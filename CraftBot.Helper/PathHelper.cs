@@ -11,7 +11,6 @@ namespace CraftBot.Helper
         public static string PathSeparator { get; } = Path.DirectorySeparatorChar.ToString(); 
         //Method 1: RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "\\" : "/"
 
-
         public static string ErrorReportsDirectory => CombinePath(CraftBotDirectory, "error");
 
         public static string DataDirectory => CombinePath(CraftBotDirectory, "data");

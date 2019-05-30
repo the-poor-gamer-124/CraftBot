@@ -22,9 +22,18 @@ namespace CraftBot.Helper
 
             if (unfinishedProgress != 0)
             {
-                if (unfinishedProgress >= 0.75) output += "progress-75".GetEmojiString(client);
-                else if (unfinishedProgress >= 0.50) output += "progress-50".GetEmojiString(client);
-                else if (unfinishedProgress >= 0.25) output += "progress-25".GetEmojiString(client);
+                if (unfinishedProgress >= 0.75)
+                {
+                    output += "progress-75".GetEmojiString(client);
+                }
+                else if (unfinishedProgress >= 0.50)
+                {
+                    output += "progress-50".GetEmojiString(client);
+                }
+                else if (unfinishedProgress >= 0.25)
+                {
+                    output += "progress-25".GetEmojiString(client);
+                }
             }
 
             for (int i = 0; i < length - (characterProgress + unfinishedProgress); i++)

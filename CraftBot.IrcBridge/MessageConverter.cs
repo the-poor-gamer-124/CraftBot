@@ -92,6 +92,9 @@ namespace CraftBot.IrcBridge
                 }
             }
 
+            //The replaced string contains an invisible unicode 
+            message.Replace("@everyone", "@​everyone", StringComparison.InvariantCultureIgnoreCase);
+
             return message;
         }
     }

@@ -86,7 +86,7 @@ namespace CraftBot.IrcBridge
                         entry.IrcClient.OnJoin += IrcClient_OnJoinAsync;
                         entry.IrcClient.OnError += IrcClient_OnError;
                         entry.IrcClient.OnPart += IrcClient_OnPartAsync;
-                        entry.IrcClient.OnQuit += IrcClient_OnQuitAsync; ;
+                        entry.IrcClient.OnQuit += IrcClient_OnQuitAsync;
 
                         IrcEntries.Add(entry);
 

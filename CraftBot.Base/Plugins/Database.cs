@@ -98,6 +98,16 @@ namespace CraftBot.Base.Plugins
             SetDatabase(type, id, db);
         }
 
+        public static void RemoveKey(DatabaseType type, ulong id, string key)
+        {
+            Dictionary<string, object> db = GetDatabase(type, id);
+            if (db.ContainsKey(key))
+            {
+                db.Remove(key);
+            }
+            SetDatabase(type, id, db);
+        }
+
         #endregion Public Methods
 
         #region Extensions
@@ -113,6 +123,12 @@ namespace CraftBot.Base.Plugins
         public static void SetValue(this DiscordUser user, string key, object value) => SetValue(DatabaseType.User, user.Id, key, value);
 
         public static void SetValue(this DiscordChannel channel, string key, object value) => SetValue(DatabaseType.Channel, channel.Id, key, value);
+
+        public static void RemoveKey(this DiscordGuild guild, string key) => RemoveKey(DatabaseType.Guild, guild.Id, key);
+
+        public static void RemoveKey(this DiscordUser user, string key) => RemoveKey(DatabaseType.User, user.Id, key);
+
+        public static void RemoveKey(this DiscordChannel channel, string key) => RemoveKey(DatabaseType.Channel, channel.Id, key);
 
         #endregion Extensions
     }

@@ -54,6 +54,10 @@ namespace CraftBot.IrcBridge
                     await webhook.DeleteAsync();
 
                     discordChannel.SetValue("irc.enabled", false);
+                    discordChannel.RemoveKey("irc.host");
+                    discordChannel.RemoveKey("irc.port");
+                    discordChannel.RemoveKey("irc.channel");
+                    discordChannel.RemoveKey("irc.webhook");
 
                     entry.IrcClient.Disconnect();
 
@@ -66,6 +70,19 @@ namespace CraftBot.IrcBridge
                 {
                     await context.RespondAsync("not found");
                 }
+            }
+
+            [Command("enable")]
+            public async Task Enable(CommandContext context, bool enable)
+            {
+                if (!context.Channel.PermissionsFor(context.Member).HasPermission(Permissions.Administrator) && context.User.Id != 194891941509332992)
+                {
+                    await context.RespondAsync($"You don't have the necessary permissions");
+                    return;
+                }
+
+                context.Channel.SetValue("irc.enabled", enable);
+                await context.RespondAsync($"This channel's IRC Link has been set to {enable}");
             }
 
             [GroupCommand]

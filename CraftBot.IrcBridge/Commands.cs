@@ -73,6 +73,7 @@ namespace CraftBot.IrcBridge
             }
 
             [Command("enable")]
+            [GroupCommand]
             public async Task Enable(CommandContext context, bool enable)
             {
                 if (!context.Channel.PermissionsFor(context.Member).HasPermission(Permissions.Administrator) && context.User.Id != 194891941509332992)

@@ -125,6 +125,7 @@ namespace CraftBot.IrcBridge
                     await context.RespondAsync("There's no IRC Link for this channel.");
                     return;
                 }
+
                 ulong channelId = context.Channel.Id;
 
                 var builder = new MaterialEmbedBuilder(context.Client);
@@ -138,15 +139,16 @@ namespace CraftBot.IrcBridge
 
                         foreach (DictionaryEntry item in entry.IrcClient.GetChannel(channelLink.IrcChannel).Users)
                         {
-                            string nickname = (string)item.Key;
-                            string discordUser = null;
+                            string icon = "account";
+                            string title = (string)item.Key;
 
-                            if (Utilities.GetDiscordMember(nickname, context.Guild) is DiscordMember member)
+                            if (Utilities.GetDiscordMember(title, context.Guild) is DiscordMember member)
                             {
-                                discordUser = $"{member.Username}#{member.Discriminator}";
+                                title += "#" + member.Discriminator;
+                                icon += "-discord";
                             }
 
-                            builder.AddListTile("account", nickname, discordUser);
+                            builder.AddListTile(icon, title);
                         }
                     }
                 }

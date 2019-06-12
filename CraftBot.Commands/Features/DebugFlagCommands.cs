@@ -32,7 +32,7 @@ namespace CraftBot.Commands.Features
                 public async Task Get(CommandContext context, string flag)
                 {
                     bool value = Program.Flags[flag];
-                    await context.RespondAsync(context.GetString("Bot_DebugFlags_GetMessage", flag, value.ToString()));
+                    await context.RespondAsync(context.GetStringAsync("Bot_DebugFlags_GetMessage", flag, value.ToString()));
                 }
 
                 [RequireUserGroup]
@@ -40,7 +40,7 @@ namespace CraftBot.Commands.Features
                 public async Task Set(CommandContext context, string flag, bool value)
                 {
                     Program.Flags[flag] = value;
-                    await context.RespondAsync(context.GetString("Bot_DebugFlags_SetMessage", flag, value.ToString()));
+                    await context.RespondAsync(context.GetStringAsync("Bot_DebugFlags_SetMessage", flag, value.ToString()));
                 }
             }
         }

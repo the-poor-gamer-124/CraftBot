@@ -21,11 +21,11 @@ namespace CraftBot.ServerSpecial
         public static bool Enable = true;
         public static Dictionary<ulong, int> Leaderboard = new Dictionary<ulong, int>();
 
-        static EmojiLeaderBoard() => LoadLeaderboard();
+        static EmojiLeaderBoard() => LoadLeaderboardAsync();
 
-        public static void LoadLeaderboard()
+        public static async void LoadLeaderboardAsync()
         {
-            var value = (JObject)Database.GetValue(DatabaseType.Guild, MessengerGeekDiscordId, "elb", new Dictionary<ulong, int>());
+            var value = await Base.Program.Database.GetAsync("guild", MessengerGeekDiscordId, "elb", JObject.FromObject(new Dictionary<ulong, int>()));
             foreach (KeyValuePair<string, JToken> item in value)
             {
                 ulong id = ulong.Parse(item.Key);
@@ -60,16 +60,16 @@ namespace CraftBot.ServerSpecial
                         bool hitMilestone = newRank.ToString().EndsWith(nulls);
                         if (hitMilestone)
                         {
-                            _ = await e.Message.RespondAsync(string.Format(e.GetString("ELB_MilestoneHit"), e.Author.Mention, newRank));
+                            _ = await e.Message.RespondAsync(string.Format(await e.GetStringAsync("ELB_MilestoneHit"), e.Author.Mention, newRank));
                         }
                     }
 
-                    SaveLeaderboard();
+                    SaveLeaderboardAsync();
                 }
             }
         }
 
-        public static void SaveLeaderboard() => Database.SetValue(DatabaseType.Guild, MessengerGeekDiscordId, "elb", Leaderboard);
+        public static async Task SaveLeaderboardAsync() => await Base.Program.Database.SetAsync("guild", MessengerGeekDiscordId, "elb", Leaderboard);
 
     }
 
@@ -102,7 +102,7 @@ namespace CraftBot.ServerSpecial
             [RequireUserGroup]
             public async Task Reload(CommandContext ctx)
             {
-                EmojiLeaderBoard.LoadLeaderboard();
+                EmojiLeaderBoard.LoadLeaderboardAsync();
                 _ = await ctx.RespondAsync("Leaderboard reloaded from file.");
             }
 
@@ -110,22 +110,22 @@ namespace CraftBot.ServerSpecial
             [RequireUserGroup]
             public async Task Save(CommandContext ctx)
             {
-                EmojiLeaderBoard.SaveLeaderboard();
+                EmojiLeaderBoard.SaveLeaderboardAsync();
                 _ = await ctx.RespondAsync("Leaderboard has been saved as file.");
             }
 
             [Command("view")]
             [GroupCommand]
-            public async Task View(CommandContext ctx)
+            public async Task View(CommandContext context)
             {
-                if (ctx.Guild.Id != EmojiLeaderBoard.MessengerGeekDiscordId)
+                if (context.Guild.Id != EmojiLeaderBoard.MessengerGeekDiscordId)
                 {
-                    await ctx.Message.RespondAsync(ctx.GetString("ELB_RestrictionMessage"));
+                    await context.Message.RespondAsync(await context.GetStringAsync("ELB_RestrictionMessage"));
                     return;
                 }
 
                 var builder = new DiscordEmbedBuilder();
-                builder.WithAuthor(ctx.GetString("ELB_Title"), iconUrl: "https://github.com/twitter/twemoji/raw/gh-pages/72x72/1f61b.png");
+                builder.WithAuthor(await context.GetStringAsync("ELB_Title"), iconUrl: "https://github.com/twitter/twemoji/raw/gh-pages/72x72/1f61b.png");
 
                 string list = "";
                 var sorted = EmojiLeaderBoard.Leaderboard.OrderByDescending(a => a.Value);
@@ -135,7 +135,7 @@ namespace CraftBot.ServerSpecial
                 {
                     KeyValuePair<ulong, int> item = top10[i];
                     string prefix = new[] { ":one:", ":two:", ":three:", ":three:", ":four:", ":five:", ":six:", ":seven:", ":eight:", ":nine:", ":keycap_ten:" }[i];
-                    list += $"{prefix} {(await ctx.Client.GetUserAsync(item.Key)).Username} `{item.Value}`\n";
+                    list += $"{prefix} {(await context.Client.GetUserAsync(item.Key)).Username} `{item.Value}`\n";
                 }
 
                 int leftOver = sorted.Count() - top10.Count();
@@ -144,14 +144,14 @@ namespace CraftBot.ServerSpecial
                     list += $"\n*and {leftOver} more...*";
                 }
 
-                builder.AddField(ctx.GetString("ELB_Ranking"), list);
+                builder.AddField(await context.GetStringAsync("ELB_Ranking"), list);
 
                 if (!EmojiLeaderBoard.Enable)
                 {
-                    builder.WithFooter(ctx.GetString("ELB_DisabledNotice"));
+                    builder.WithFooter(await context.GetStringAsync("ELB_DisabledNotice"));
                 }
 
-                await ctx.RespondAsync(embed: builder.Build());
+                await context.RespondAsync(embed: builder.Build());
             }
         }
     }

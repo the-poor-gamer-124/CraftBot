@@ -35,6 +35,8 @@ namespace CraftBot.Base
         public static Config Config;
         public static DebugFlags Flags = new DebugFlags();
         public static InteractivityExtension Interactivity;
+        public static Database Database { get; } = new Database();
+
 
         private static void CheckRequiredDirectories()
         {

@@ -73,7 +73,7 @@ namespace CraftBot.ServerSpecial
                 LogManager.GetCurrentClassLogger().Error(ex, "Failed pulling topics from MessengerGeek");
             }
 
-            FeedChannel.SetValue("sentTopics", string.Join(",", AlreadySentTopics));
+            await FeedChannel.SetAsync("sentTopics", string.Join(",", AlreadySentTopics));
             CheckTimer.Start();
         }
 
@@ -83,7 +83,7 @@ namespace CraftBot.ServerSpecial
 
             Webhook = await e.Client.GetWebhookAsync(574815359597805578);
 
-            string values = (string)FeedChannel.GetValue("sentTopics", null);
+            string values = await FeedChannel.GetAsync<string>("sentTopics", null);
             AlreadySentTopics = values == null ? new List<int>() : Array.ConvertAll(values.Split(','), s => int.Parse(s)).ToList();
 
             CheckTimer_Elapsed(null, null);

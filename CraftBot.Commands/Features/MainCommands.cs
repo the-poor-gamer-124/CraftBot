@@ -16,7 +16,7 @@ namespace CraftBot.Commands.Features
         [Command("areyouthere")]
         [Aliases("ayt")]
         [Description("It's a simple \"hello world\" command, used to check if the bot is operating/online.")]
-        public async Task AreYouThere(CommandContext context) => await context.RespondAsync(string.Format(context.GetString("AreYouThere_Message"), context.User.Mention));
+        public async Task AreYouThere(CommandContext context) => await context.RespondAsync(string.Format(context.GetStringAsync("AreYouThere_Message"), context.User.Mention));
 
         [CraftBot.Helper.RequireUserGroup]
         [Command("repeat")]

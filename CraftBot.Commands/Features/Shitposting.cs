@@ -20,8 +20,8 @@ namespace CraftBot.Commands.Features
             [RequireGuild]
             public async Task Shitposting(CommandContext ctx, bool enable)
             {
-                _ = ctx.Guild.ShitpostingEnabled(enable);
-                _ = await ctx.Message.RespondAsync($"Shitposting has been {(enable ? "enabled" : "disabled")}.");
+                await ctx.Guild.SetShitpostingAsync(enable);
+                await ctx.Message.RespondAsync($"Shitposting has been {(enable ? "enabled" : "disabled")}.");
             }
         }
     }
@@ -29,22 +29,13 @@ namespace CraftBot.Commands.Features
     public static class Shitposting
     {
         //Fake property
-        public static bool? ShitpostingEnabled(this DiscordGuild guild, bool? setValue = null)
-        {
-            if (setValue == null)
-            {
-                return (bool)guild.GetValue("shitposting", false);
-            }
-            else
-            {
-                guild.SetValue("shitposting", setValue);
-                return null;
-            }
-        }
+        public static async Task<bool> IsShitpostingEnabledAsync(this DiscordGuild guild) => await guild.GetAsync<bool>("shitposting");
+
+        public static async Task SetShitpostingAsync(this DiscordGuild guild, bool enable) => await guild.SetAsync("shitposting", enable);
 
         public static async Task DiscordClient_MessageCreated(MessageCreateEventArgs e)
         {
-            if (e.Guild.ShitpostingEnabled().Value)
+            if (await e.Guild.IsShitpostingEnabledAsync())
             {
                 if (e.Message.Content.Contains("loli", StringComparison.InvariantCultureIgnoreCase))
                 {

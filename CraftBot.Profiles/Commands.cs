@@ -30,8 +30,8 @@ namespace CraftBot.Profiles
                     Biography = string.Join(" ", text)
                 };
 
-                builder.WithTitle($"{context.User.Username} / {context.GetString("Profiles_Profile")} / {context.GetString("Profiles_Biography")}", context.User.AvatarUrl)
-                    .WithText(string.Format(context.GetString("Profiles_Biography_Response"), profile.Biography));
+                builder.WithTitle($"{context.User.Username} / {await context.GetStringAsync("Profiles_Profile")} / {await context.GetStringAsync("Profiles_Biography")}", context.User.AvatarUrl)
+                    .WithText(string.Format(await context.GetStringAsync("Profiles_Biography_Response"), profile.Biography));
 
                 _ = await context.RespondAsync(embed: builder.Build());
             }
@@ -45,8 +45,8 @@ namespace CraftBot.Profiles
                     BiographyImage = imageUrl
                 };
 
-                builder.WithTitle($"{context.User.Username} / {context.GetString("Profiles_Profile")} / {context.GetString("Profiles_BiographyImage")}", context.User.AvatarUrl)
-                    .WithText(context.GetString("Profiles_Biography_Response"))
+                builder.WithTitle($"{context.User.Username} / {await context.GetStringAsync("Profiles_Profile")} / {await context.GetStringAsync("Profiles_BiographyImage")}", context.User.AvatarUrl)
+                    .WithText(await context.GetStringAsync("Profiles_Biography_Response"))
                     .WithImage(profile.BiographyImage);
 
                 _ = await context.RespondAsync(embed: builder.Build());
@@ -76,8 +76,8 @@ namespace CraftBot.Profiles
                     Gender = (ProfileGender)Enum.Parse(typeof(ProfileGender), gender, true)
                 };
 
-                builder.WithTitle($"{context.User.Username} / {context.GetString("Profiles_Profile")} / {context.GetString("Profiles_Gender")}", context.User.AvatarUrl)
-                     .WithText(string.Format(context.GetString("Profiles_Gender_Response"), profile.Gender.ToString()));
+                builder.WithTitle($"{context.User.Username} / {await context.GetStringAsync("Profiles_Profile")} / {await context.GetStringAsync("Profiles_Gender")}", context.User.AvatarUrl)
+                     .WithText(string.Format(await context.GetStringAsync("Profiles_Gender_Response"), profile.Gender.ToString()));
 
                 _ = await context.RespondAsync(embed: builder.Build());
             }
@@ -91,21 +91,21 @@ namespace CraftBot.Profiles
 
                 if (language == null)
                 {
-                    builder.WithText(string.Format(context.GetString("Profiles_Language_NotFound"), languageCode));
+                    builder.WithText(string.Format(await context.GetStringAsync("Profiles_Language_NotFound"), languageCode));
                 }
                 else
                 {
                     profile.Language = language;
-                    builder.WithText(string.Format(context.GetString("Profiles_Language_Response"), profile.Language.NativeName));
+                    builder.WithText(string.Format(await context.GetStringAsync("Profiles_Language_Response"), profile.Language.NativeName));
                 }
 
-                builder.WithTitle($"{context.User.Username} / {context.GetString("Profiles_Profile")} / {context.GetString("Profiles_Language")}", context.User.AvatarUrl);
+                builder.WithTitle($"{context.User.Username} / {await context.GetStringAsync("Profiles_Profile")} / {await context.GetStringAsync("Profiles_Language")}", context.User.AvatarUrl);
 
                 _ = await context.RespondAsync(embed: builder.Build());
             }
 
             [Command("delete")]
-            public async Task Delete(CommandContext context) => _ = await context.RespondAsync(context.GetString("Profiles_Delete_Confirm"));
+            public async Task Delete(CommandContext context) => _ = await context.RespondAsync(await context.GetStringAsync("Profiles_Delete_Confirm"));
 
             [Command("delete")]
             public async Task Delete(CommandContext context, bool confirmation)
@@ -123,7 +123,7 @@ namespace CraftBot.Profiles
                         Language = Language.GetDefaultLanguage()
                     };
 
-                    await context.RespondAsync(context.GetString("Profiles_Delete_Success"));
+                    await context.RespondAsync(await context.GetStringAsync("Profiles_Delete_Success"));
                 }
             }
 
@@ -144,8 +144,8 @@ namespace CraftBot.Profiles
                 MaterialEmbedListTile ageListTile = null;
                 MaterialEmbedListTile languageListTile = new MaterialEmbedListTile(
                     DiscordEmoji.FromUnicode(context.Client, "❓"),
-                    context.GetString("Profiles_Language"),
-                    context.GetLanguage().GetLocalisedLanguageName(profile.Language)
+                    await context.GetStringAsync("Profiles_Language"),
+                    (await context.GetLanguageAsync()).GetLocalisedLanguageName(profile.Language)
                 );
 
                 if (profile.Gender != ProfileGender.Unset)
@@ -155,12 +155,12 @@ namespace CraftBot.Profiles
 
                     switch (profile.Gender)
                     {
-                        case ProfileGender.Unset:  gender = context.GetString("GeneralTerms_Unset");                             break;
-                        case ProfileGender.Male:   gender = context.GetString("Profiles_Gender_Male");   icon = "gender-male";   break;
-                        case ProfileGender.Female: gender = context.GetString("Profiles_Gender_Female"); icon = "gender-female"; break;
+                        case ProfileGender.Unset:  gender = await context.GetStringAsync("GeneralTerms_Unset");                             break;
+                        case ProfileGender.Male:   gender = await context.GetStringAsync("Profiles_Gender_Male");   icon = "gender-male";   break;
+                        case ProfileGender.Female: gender = await context.GetStringAsync("Profiles_Gender_Female"); icon = "gender-female"; break;
                     }
 
-                    genderListTile = new MaterialEmbedListTile(icon, context.GetString("Profiles_Gender"), gender);
+                    genderListTile = new MaterialEmbedListTile(icon, await context.GetStringAsync("Profiles_Gender"), gender);
                 }
                 if (!profile.Birthday.Equals(DateTime.MinValue))
                 {
@@ -168,9 +168,9 @@ namespace CraftBot.Profiles
 
                     birthdayListTile = new MaterialEmbedListTile(
                         "blank",
-                        context.GetString("Profiles_Birthday_Title"),
+                        await context.GetStringAsync("Profiles_Birthday_Title"),
                         string.Format(
-                            context.GetString(hasYearSpecified ? "Profiles_Birthday_Value_WithYear" : "Profiles_Birthday_Value_NoYear"),
+                            await context.GetStringAsync($"Profiles_Birthday_Value_{(hasYearSpecified ? "With" : "No")}Year"),
                             profile.Birthday.Day,
                             profile.Birthday.Month,
                             profile.Birthday.Year,
@@ -182,23 +182,23 @@ namespace CraftBot.Profiles
                     {
                         ageListTile = new MaterialEmbedListTile(
                             "blank",
-                            context.GetString("Profiles_Age_Title"),
-                            string.Format(context.GetString("Profiles_Age_Value"), profile.Age)
+                            await context.GetStringAsync("Profiles_Age_Title"),
+                            string.Format(await context.GetStringAsync("Profiles_Age_Value"), profile.Age)
                         );
                     }
                 }
                 if (!string.IsNullOrWhiteSpace(profile.Biography))
                 {
-                    builder.AddSection(null, context.GetString("Profiles_Biography"), profile.Biography);
+                    builder.AddSection(null, await context.GetStringAsync("Profiles_Biography"), profile.Biography);
                 }
                 if (!string.IsNullOrWhiteSpace(profile.BiographyImage))
                 {
                     builder.WithImage(profile.BiographyImage);
                 }
 
-                builder.WithTitle($"{user.Username} / {context.GetString("Profiles_Profile")}", user.AvatarUrl);
-                builder.WithFooter(context.GetString("Profiles_Help"));
-                builder.AddSection(null, context.GetString("GeneralTerms_General"),
+                builder.WithTitle($"{user.Username} / {await context.GetStringAsync("Profiles_Profile")}", user.AvatarUrl);
+                builder.WithFooter(await context.GetStringAsync("Profiles_Help"));
+                builder.AddSection(null, await context.GetStringAsync("GeneralTerms_General"),
                     languageListTile,
                     birthdayListTile,
                     ageListTile,

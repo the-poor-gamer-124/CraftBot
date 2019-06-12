@@ -37,34 +37,34 @@ namespace CraftBot.Commands.Features
                 builder.AddSection(null, "General",
                     new MaterialEmbedListTile(
                         "discord",
-                        $"[{context.GetString("Bot_Info_DSharpPlusVersion")}](https://github.com/DSharpPlus/DSharpPlus/)",
+                        $"[{await context.GetStringAsync("Bot_Info_DSharpPlusVersion")}](https://github.com/DSharpPlus/DSharpPlus/)",
                         context.Client.VersionString),
 
                     new MaterialEmbedListTile(
                         "account-star",
-                        context.GetString("Bot_Info_Creator"),
+                        await context.GetStringAsync("Bot_Info_Creator"),
                         "<@!194891941509332992>"),
 
                     new MaterialEmbedListTile(
                         "help-circle",
-                        context.GetString("Bot_Info_HelpCommand"),
+                        await context.GetStringAsync("Bot_Info_HelpCommand"),
                         $"`{context.Prefix}help`")
                 );
 
-                builder.AddSection(null, context.GetString("Bot_Info_Statistics"),
+                builder.AddSection(null, await context.GetStringAsync("Bot_Info_Statistics"),
                     new MaterialEmbedListTile(
                         "clock-fast",
-                        context.GetString("Bot_Info_Uptime"),
+                        await context.GetStringAsync("Bot_Info_Uptime"),
                         (DateTime.UtcNow - Process.GetCurrentProcess().StartTime.ToUniversalTime()).ToConversationalString()),
 
                     new MaterialEmbedListTile(
                         "blank",
-                        context.GetString("Bot_Info_Commands"),
+                        await context.GetStringAsync("Bot_Info_Commands"),
                         context.Client.GetExtension<CommandsNextExtension>().RegisteredCommands.Count.ToString()),
 
                     new MaterialEmbedListTile(
                         "blank",
-                        context.GetString("Bot_Info_Servers"),
+                        await context.GetStringAsync("Bot_Info_Servers"),
                         context.Client.Guilds.Count.ToString())
                     );
 
@@ -230,8 +230,8 @@ namespace CraftBot.Commands.Features
             public async Task Shutdown(CommandContext context)
             {
                 _ = await context.RespondAsync(embed: new DiscordEmbedBuilder().WithTitle("Shutting down..."));
-                await context.Client.DisconnectAsync();
-                Environment.Exit(-1);
+
+                Base.Helpers.Shutdown(context.Client);
             }
 
             #endregion Public Methods

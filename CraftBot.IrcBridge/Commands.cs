@@ -31,11 +31,11 @@ namespace CraftBot.IrcBridge
                 {
                     DiscordWebhook webhook = await discordChannel.CreateWebhookAsync("IRC Link", reason: $"IRC Link created by {context.User.Username}#{context.User.Discriminator} ({context.User.Id})");
 
-                    discordChannel.SetValue("irc.enabled", true);
-                    discordChannel.SetValue("irc.host", host);
-                    discordChannel.SetValue("irc.port", 6667);
-                    discordChannel.SetValue("irc.channel", ircChannel);
-                    discordChannel.SetValue("irc.webhook", webhook.Id);
+                    await discordChannel.SetAsync("irc.enabled", true);
+                    await discordChannel.SetAsync("irc.host", host);
+                    await discordChannel.SetAsync("irc.port", 6667);
+                    await discordChannel.SetAsync("irc.channel", ircChannel);
+                    await discordChannel.SetAsync("irc.webhook", webhook.Id);
 
                     await IrcGateway.CheckChannelForIRCAsync(discordChannel.Id);
                     await context.RespondAsync("kk");
@@ -50,14 +50,14 @@ namespace CraftBot.IrcBridge
                 IrcEntry entry = IrcGateway.IrcEntries.FirstOrDefault(e => e.ServerHost == host && e.ChannelLinks.Any(cl => cl.Webhook.ChannelId == discordChannel.Id && cl.IrcChannel == ircChannel));
                 if (entry != null)
                 {
-                    DiscordWebhook webhook = await context.Client.GetWebhookAsync(ulong.Parse(discordChannel.GetValue("irc.webhook").ToString()));
+                    DiscordWebhook webhook = await context.Client.GetWebhookAsync(await discordChannel.GetAsync<ulong>("irc.webhook"));
                     await webhook.DeleteAsync();
 
-                    discordChannel.SetValue("irc.enabled", false);
-                    discordChannel.RemoveKey("irc.host");
-                    discordChannel.RemoveKey("irc.port");
-                    discordChannel.RemoveKey("irc.channel");
-                    discordChannel.RemoveKey("irc.webhook");
+                    await discordChannel.SetAsync("irc.enabled", false);
+                    //await discordChannel.RemoveKey("irc.host");
+                    //await discordChannel.RemoveKey("irc.port");
+                    //await discordChannel.RemoveKey("irc.channel");
+                    //await discordChannel.RemoveKey("irc.webhook");
 
                     entry.IrcClient.Disconnect();
 
@@ -82,7 +82,7 @@ namespace CraftBot.IrcBridge
                     return;
                 }
 
-                context.Channel.SetValue("irc.enabled", enable);
+                await context.Channel.SetAsync("irc.enabled", enable);
                 await context.RespondAsync($"This channel's IRC Link has been set to {enable}");
             }
 
@@ -109,7 +109,7 @@ namespace CraftBot.IrcBridge
                         builder.AddListTile(
                             "pound",
                             channel.Mention,
-                            string.Format(context.GetString("Server_IRC_LinkedWith"), $"`{entry.ServerHost}:{entry.ServerPort}`: {string.Join(", ", channels)}")
+                            string.Format(await context.GetStringAsync("Server_IRC_LinkedWith"), $"`{entry.ServerHost}:{entry.ServerPort}`: {string.Join(", ", channels)}")
                             );
                     }
                 }
@@ -120,7 +120,7 @@ namespace CraftBot.IrcBridge
             [Command("users")]
             public async Task ListUsers(CommandContext context)
             {
-                if (!(bool)context.Channel.GetValue("irc.enabled", false))
+                if (!await context.Channel.GetAsync("irc.enabled", false))
                 {
                     await context.RespondAsync("There's no IRC Link for this channel.");
                     return;

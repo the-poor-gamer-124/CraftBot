@@ -45,24 +45,24 @@ namespace CraftBot.Commands.Features
             [RequireGuild]
             public async Task Info(CommandContext context)
             {
-                MaterialEmbedBuilder builder = new MaterialEmbedBuilder(context.Client).WithTitle($"{context.Guild.Name} / {context.GetString("GeneralTerms_Information")}", context.Guild.IconUrl);
+                MaterialEmbedBuilder builder = new MaterialEmbedBuilder(context.Client).WithTitle($"{context.Guild.Name} / {context.GetStringAsync("GeneralTerms_Information")}", context.Guild.IconUrl);
 
-                builder.AddSection(null, context.GetString("GeneralTerms_General"),
+                builder.AddSection(null, context.GetStringAsync("GeneralTerms_General"),
                     new MaterialEmbedListTile(
                         context.Guild.IsLarge ? "account-group" : "account-multiple",
-                        context.GetString("Server_Info_Members_Title"),
-                        string.Format(context.GetString("Server_Info_Members_Value"), context.Guild.MemberCount.ToString())),
+                        context.GetStringAsync("Server_Info_Members_Title"),
+                        string.Format(context.GetStringAsync("Server_Info_Members_Value"), context.Guild.MemberCount.ToString())),
 
                     new MaterialEmbedListTile(
                         "calendar-plus",
-                        context.GetString("Server_Info_CreatedOn_Title"),
-                        string.Format(context.GetString("Server_Info_CreatedOn_Value"), context.Guild.CreationTimestamp.ToString()))
+                        context.GetStringAsync("Server_Info_CreatedOn_Title"),
+                        string.Format(context.GetStringAsync("Server_Info_CreatedOn_Value"), context.Guild.CreationTimestamp.ToString()))
                     );
 
-                builder.AddSection(null, context.GetString("GeneralTerms_BotRelated"),
+                builder.AddSection(null, context.GetStringAsync("GeneralTerms_BotRelated"),
                     new MaterialEmbedListTile(
                         "earth",
-                        context.GetString("Server_Info_Region"),
+                        context.GetStringAsync("Server_Info_Region"),
                         context.Guild.VoiceRegion.Name),
 
                     new MaterialEmbedListTile(
@@ -73,10 +73,10 @@ namespace CraftBot.Commands.Features
                 //string logFile = $"data\\guild\\{context.Guild.Id}.log.json";
                 //int loggedMessages = context.Guild.Logging().Value && File.Exists(logFile) ? JsonConvert.DeserializeObject<List<DiscordMessage>>(File.ReadAllText(logFile)).Count() : 0;
 
-                builder.AddSection(null, context.GetString("GeneralTerms_BotRelated"),
+                builder.AddSection(null, context.GetStringAsync("GeneralTerms_BotRelated"),
                     new MaterialEmbedListTile(
-                        context.Guild.ShitpostingEnabled().Value,
-                        context.GetString("Server_Info_Shitposting")
+                        await context.Guild.IsShitpostingEnabledAsync(),
+                        context.GetStringAsync("Server_Info_Shitposting")
                     )
                 );
 

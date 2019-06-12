@@ -30,9 +30,10 @@ namespace CraftBot.Commands.Features
                     {
                         graphics.DrawImage(avatar, new Rectangle(85, 85, 65, 65));
                     }
+
                     bitmap.Save(outputStream, ImageFormat.Png);
                 }
-                await context.RespondWithFileAsync("ehre.png", outputStream, string.Format(context.GetString("Ehre_Message"), user.Mention));
+                await context.RespondWithFileAsync("ehre.png", outputStream, string.Format(await context.GetStringAsync("Ehre_Message"), user.Mention));
             }
         }
 

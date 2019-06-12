@@ -20,7 +20,7 @@ namespace CraftBot.Commands.Features
         public static async Task DiscordClient_MessageCreated(MessageCreateEventArgs e)
         {
             MatchCollection matches = Regex.Matches(e.Message.Content, ReplyRegex);
-            if (e.Author.QuotingEnabled().Value && matches.Count != 0)
+            if (await e.Author.IsQuotingEnabledAsync() && matches.Count != 0)
             {
                 foreach (Match match in matches)
                 {
@@ -38,19 +38,9 @@ namespace CraftBot.Commands.Features
             }
         }
 
-        //Fake property
-        public static bool? QuotingEnabled(this DiscordUser user, bool? setValue = null)
-        {
-            if (setValue == null)
-            {
-                return (bool)user.GetValue("quoting", false);
-            }
-            else
-            {
-                user.SetValue("quoting", setValue);
-                return null;
-            }
-        }
+        public static async Task<bool> IsQuotingEnabledAsync(this DiscordUser user) => await user.GetAsync<bool>("quoting", false);
+
+        public static async Task SetQuotingAsync(this DiscordUser user, bool enable) => await user.SetAsync("quoting", enable);
 
         #endregion Public Methods
     }

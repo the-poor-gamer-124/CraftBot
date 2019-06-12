@@ -1,12 +1,13 @@
 ﻿using CraftBot.Base;
-using CraftBot.Base.Plugins;
 using CraftBot.Commands.Features;
 using CraftBot.Commands.Features.Protection;
-using CraftBot.Commands.Features.Server;
 using CraftBot.Helper;
+
 using DSharpPlus;
 using DSharpPlus.Entities;
+
 using NLog;
+
 using System;
 using System.IO;
 using System.Net;

@@ -1,10 +1,10 @@
 ﻿using CraftBot.Localisation;
+
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
-using System;
-using System.Collections.Generic;
-using System.Text;
+
+using System.Threading.Tasks;
 
 namespace CraftBot.Profiles
 {
@@ -12,20 +12,20 @@ namespace CraftBot.Profiles
     {
         public static Language GetLanguage(this DiscordUser user) => new Profile(user).Language;
 
-        public static Language GetLanguage(DiscordGuild guild, DiscordUser user) => guild.LanguageOverride() != null ? guild.LanguageOverride() : new Profile(user).Language;
+        public static async Task<Language> GetLanguageAsync(DiscordGuild guild, DiscordUser user) => await guild.GetLanguageOverrideAsync() ?? new Profile(user).Language;
 
         public static string GetString(this DiscordUser user, string key) => new Profile(user).Language.GetString(key);
 
-        public static Language GetLanguage(this MessageCreateEventArgs eventArgs) => GetLanguage(eventArgs.Guild, eventArgs.Author);
+        public static async Task<Language> GetLanguageAsync(this MessageCreateEventArgs eventArgs) => await GetLanguageAsync(eventArgs.Guild, eventArgs.Author);
 
-        public static Language GetLanguage(this CommandContext context) => GetLanguage(context.Guild, context.User);
+        public static async Task<Language> GetLanguageAsync(this CommandContext context) => await GetLanguageAsync(context.Guild, context.User);
 
         public static string GetLocalisedLanguageName(this Language language, Language nameLanguage) => language.GetString("Language_" + nameLanguage.EnglishName);
 
-        public static string GetString(this CommandContext context, string key) => context.GetLanguage().GetString(key);
+        public static async Task<string> GetStringAsync(this CommandContext context, string key) => (await context.GetLanguageAsync()).GetString(key);
 
-        public static string GetString(this CommandContext context, string key, params string[] args) => string.Format(GetString(context, key), args);
+        public static async Task<string> GetStringAsync(this CommandContext context, string key, params string[] args) => string.Format(await GetStringAsync(context, key), args);
 
-        public static string GetString(this MessageCreateEventArgs eventArgs, string key) => eventArgs.GetLanguage().GetString(key);
+        public static async Task<string> GetStringAsync(this MessageCreateEventArgs eventArgs, string key) => (await eventArgs.GetLanguageAsync()).GetString(key);
     }
 }

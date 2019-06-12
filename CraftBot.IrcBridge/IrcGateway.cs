@@ -1,11 +1,14 @@
 ﻿using CraftBot.Base.Plugins;
 using CraftBot.Helper;
+
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
 
 using Meebey.SmartIrc4net;
+
 using NLog;
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,7 +16,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -36,107 +38,110 @@ namespace CraftBot.IrcBridge
 
         public static async Task CheckChannelForIRCAsync(ulong channelId)
         {
-            Dictionary<string, object> db = Database.GetDatabase(DatabaseType.Channel, channelId);
-            if ((bool)Database.GetValue(db, "irc.enabled", false))
+            var discordChannel = await Base.Program.Client.GetChannelAsync(channelId);
+
+            if (!await discordChannel.GetAsync("irc.enabled", false))
             {
-                string host = (string)Database.GetValue(db, "irc.host", null);
-                int port = int.Parse(Database.GetValue(db, "irc.port", null).ToString());
+                return;
+            }
 
-                Tuple<string, int> hostOverride = HostOverrides.FirstOrDefault(ho => ho.Key.Contains(host.ToLower())).Value;
+            string host = await discordChannel.GetAsync<string>("irc.host");
+            int port = await discordChannel.GetAsync<int>("irc.port");
 
-                if (hostOverride != null)
+            Tuple<string, int> hostOverride = HostOverrides.FirstOrDefault(ho => ho.Key.Contains(host.ToLower())).Value;
+
+            if (hostOverride != null)
                 {
                     LogManager.GetCurrentClassLogger().Info($"Overriding {host}:{port} to {hostOverride.Item1}:{hostOverride.Item2}");
                     host = hostOverride.Item1;
                     port = hostOverride.Item2;
                 }
 
-                if (!IPAddress.TryParse(host, out _))
+            if (!IPAddress.TryParse(host, out _))
+            {
+                IEnumerable<IPAddress> addresses = Dns.GetHostEntry(host).AddressList.Where(ip => ip.AddressFamily == AddressFamily.InterNetwork);
+                IPAddress address = addresses.Last();
+                host = address.ToString();
+            }
+
+            string ircChannel = await discordChannel.GetAsync<string>("irc.channel");
+            ulong webhookId = await discordChannel.GetAsync<ulong>("irc.webhook");
+
+            try
+            {
+                DiscordWebhook webhook = await Base.Program.Client.GetWebhookAsync(webhookId);
+
+                if (webhook.ChannelId != channelId)
                 {
-                    IEnumerable<IPAddress> addresses = Dns.GetHostEntry(host).AddressList.Where(ip => ip.AddressFamily == AddressFamily.InterNetwork);
-                    IPAddress address = addresses.Last();
-                    host = address.ToString();
+                    return;
                 }
 
-                string channel = (string)Database.GetValue(db, "irc.channel", null);
-                ulong webhookId = ulong.Parse(Database.GetValue(db, "irc.webhook", null).ToString());
+                IrcEntry entry = IrcEntries.FirstOrDefault(a => a.ServerHost == host && a.ServerPort == port);
 
-                try
+                if (entry == null)
                 {
-                    DiscordWebhook webhook = await Base.Program.Client.GetWebhookAsync(webhookId);
+                    var tcs = new TaskCompletionSource<bool>();
 
-                    if (webhook.ChannelId != channelId)
+                    entry = new IrcEntry(host, port, new List<ChannelLink> { new ChannelLink(webhook, ircChannel) });
+                    entry.IrcClient.Encoding = Encoding.UTF8;
+                    entry.IrcClient.EnableUTF8Recode = true;
+                    entry.IrcClient.ActiveChannelSyncing = true;
+                    entry.IrcClient.OnConnectionError += (s, e) => tcs.SetResult(false);
+                    entry.IrcClient.OnConnected += (s, e) => tcs.SetResult(true);
+                    entry.IrcClient.OnConnecting += IrcClient_OnConnecting;
+                    entry.IrcClient.OnJoin += IrcClient_OnJoinAsync;
+                    entry.IrcClient.OnError += IrcClient_OnError;
+                    entry.IrcClient.OnPart += IrcClient_OnPartAsync;
+                    entry.IrcClient.OnQuit += IrcClient_OnQuitAsync;
+
+                    IrcEntries.Add(entry);
+
+                    new Thread(() =>
                     {
-                        return;
-                    }
-
-                    IrcEntry entry = IrcEntries.FirstOrDefault(a => a.ServerHost == host && a.ServerPort == port);
-
-                    if (entry == null)
-                    {
-                        var tcs = new TaskCompletionSource<bool>();
-
-                        entry = new IrcEntry(host, port, new List<ChannelLink> { new ChannelLink(webhook, channel) });
-                        entry.IrcClient.Encoding = Encoding.UTF8;
-                        entry.IrcClient.EnableUTF8Recode = true;
-                        entry.IrcClient.ActiveChannelSyncing = true;
-                        entry.IrcClient.OnConnectionError += (s, e) => tcs.SetResult(false);
-                        entry.IrcClient.OnConnected += (s, e) => tcs.SetResult(true);
-                        entry.IrcClient.OnConnecting += IrcClient_OnConnecting;
-                        entry.IrcClient.OnJoin += IrcClient_OnJoinAsync;
-                        entry.IrcClient.OnError += IrcClient_OnError;
-                        entry.IrcClient.OnPart += IrcClient_OnPartAsync;
-                        entry.IrcClient.OnQuit += IrcClient_OnQuitAsync;
-
-                        IrcEntries.Add(entry);
-
-                        new Thread(() =>
-                        {
-                            try
-                            {
-                                entry.IrcClient.Connect(new[] { entry.ServerHost }, entry.ServerPort);
-                            }
-                            catch
-                            {
-                                tcs.SetResult(false);
-                            }
-                        })
-                        { Name = "Connection Thread" }.Start();
-
-                        bool success = await tcs.Task;
-
-                        if (!success)
-                        {
-                            var channelsAffected = new List<ulong>();
-                            foreach (ChannelLink channelLink in entry.ChannelLinks)
-                            {
-                                ulong channelId2 = channelLink.Webhook.ChannelId;
-                                if (!channelsAffected.Contains(channelId2))
-                                {
-                                    await channelLink.Webhook.ExecuteAsync("Connection to IRC server failed! Please make sure the server is accessible.", IrcGatewayName, ErrorAvatar, false, null, null);
-                                    channelsAffected.Add(channelId2);
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (!entry.ChannelLinks.Any(cl => cl.Webhook.ChannelId == channelId && cl.IrcChannel == channel))
-                        {
-                            entry.ChannelLinks.Add(new ChannelLink(webhook, channel));
-                        }
-
-                        if (!entry.IrcClient.IsConnected)
+                        try
                         {
                             entry.IrcClient.Connect(new[] { entry.ServerHost }, entry.ServerPort);
                         }
+                        catch
+                        {
+                            tcs.SetResult(false);
+                        }
+                    })
+                    { Name = "Connection Thread" }.Start();
+
+                    bool success = await tcs.Task;
+
+                    if (!success)
+                    {
+                        var channelsAffected = new List<ulong>();
+                        foreach (ChannelLink channelLink in entry.ChannelLinks)
+                        {
+                            ulong channelId2 = channelLink.Webhook.ChannelId;
+                            if (!channelsAffected.Contains(channelId2))
+                            {
+                                await channelLink.Webhook.ExecuteAsync("Connection to IRC server failed! Please make sure the server is accessible.", IrcGatewayName, ErrorAvatar, false, null, null);
+                                channelsAffected.Add(channelId2);
+                            }
+                        }
                     }
                 }
-                catch (NotFoundException)
+                else
                 {
-                    Database.SetValue(DatabaseType.Channel, channelId, "irc.enabled", false);
-                    return;
+                    if (!entry.ChannelLinks.Any(cl => cl.Webhook.ChannelId == channelId && cl.IrcChannel == ircChannel))
+                    {
+                        entry.ChannelLinks.Add(new ChannelLink(webhook, ircChannel));
+                    }
+
+                    if (!entry.IrcClient.IsConnected)
+                    {
+                        entry.IrcClient.Connect(new[] { entry.ServerHost }, entry.ServerPort);
+                    }
                 }
+            }
+            catch (NotFoundException)
+            {
+                await discordChannel.SetAsync("irc.enabled", false);
+                return;
             }
         }
 
@@ -190,7 +195,7 @@ namespace CraftBot.IrcBridge
 
         public static async Task CheckChannelsAsync()
         {
-            foreach (ulong channelId in Database.GetChannels())
+            foreach (ulong channelId in Base.Program.Database.GetDatabases("channel"))
             {
                 await CheckChannelForIRCAsync(channelId);
             }
@@ -348,7 +353,7 @@ namespace CraftBot.IrcBridge
                 return;
             }
 
-            if (!(bool)message.Channel.GetValue("irc.enabled", false))
+            if (!await message.Channel.GetAsync("irc.enabled", false))
             {
                 return;
             }

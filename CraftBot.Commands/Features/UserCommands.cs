@@ -19,20 +19,24 @@ namespace CraftBot.Commands.Features
             #region Public Methods
 
             [Command("quoting")]
-            public async Task EnableQuoting(CommandContext ctx, bool enable)
+            public async Task EnableQuoting(CommandContext context, bool enable)
             {
-                _ = ctx.User.QuotingEnabled(enable);
-                bool enabled = ctx.User.QuotingEnabled().Value;
-                _ = await ctx.RespondAsync($"Quoting has been {(enabled ? "en" : "dis")}abled");
+                await context.User.SetQuotingAsync(enable);
+
+                bool enabled = await context.User.IsQuotingEnabledAsync();
+
+                await context.RespondAsync($"Quoting has been {(enabled ? "en" : "dis")}abled");
             }
 
             [Command("delaydelete")]
             [Aliases("dd", "delaydeleting","delete")]
-            public async Task EnableDelayDelete(CommandContext ctx, bool enable)
+            public async Task EnableDelayDelete(CommandContext context, bool enable)
             {
-                _ = ctx.User.DelayDeleteEnabled(enable);
-                bool enabled = ctx.User.DelayDeleteEnabled().Value;
-                _ = await ctx.RespondAsync($"Delay delete has been {(enabled ? "en" : "dis")}abled");
+                await context.User.SetDelayDeletingAsync(enable);
+
+                bool enabled = await context.User.GetDelayDeletingAsync();
+
+                await context.RespondAsync($"Delay delete has been {(enabled ? "en" : "dis")}abled");
             }
 
             [GroupCommand]
@@ -45,39 +49,39 @@ namespace CraftBot.Commands.Features
                 }
 
                 var builder = new MaterialEmbedBuilder(context.Client);
-                builder.WithTitle($"{user.Username} / {context.GetString("GeneralTerms_Information")}", user.AvatarUrl);
+                builder.WithTitle($"{user.Username} / {await context.GetStringAsync("GeneralTerms_Information")}", user.AvatarUrl);
 
-                builder.AddSection(null, context.GetString("User_Info_Identification"),
+                builder.AddSection(null, await context.GetStringAsync("User_Info_Identification"),
                     new MaterialEmbedListTile(
                         "pencil",
-                        context.GetString("User_Info_Username"),
+                        await context.GetStringAsync("User_Info_Username"),
                         user.Username
                     ),
                     new MaterialEmbedListTile(
                         "pound",
-                        context.GetString("User_Info_Discriminator"),
+                        await context.GetStringAsync("User_Info_Discriminator"),
                         user.Discriminator.ToString()
                     ),
                     new MaterialEmbedListTile(
                         "id",
-                        context.GetString("User_Info_Id"),
+                        await context.GetStringAsync("User_Info_Id"),
                         user.Id.ToString()
                     )
                 );
 
-                builder.AddSection(null, context.GetString("GeneralTerms_General"),
+                builder.AddSection(null, await context.GetStringAsync("GeneralTerms_General"),
                     new MaterialEmbedListTile(
                         "calendar-plus",
-                        context.GetString("User_Info_UserSince_Title"),
-                        string.Format(context.GetString("User_Info_UserSince_Value"), user.CreationTimestamp.ToString())
+                        await context.GetStringAsync("User_Info_UserSince_Title"),
+                        string.Format(await context.GetStringAsync("User_Info_UserSince_Value"), user.CreationTimestamp.ToString())
                     ),
                     new MaterialEmbedListTile(
                         user.IsBot,
-                        context.GetString("User_Info_IsBot")
+                        await context.GetStringAsync("User_Info_IsBot")
                     ),
                     user.Verified.HasValue ? new MaterialEmbedListTile(
                         user.Verified.Value,
-                        context.GetString("User_Info_IsVerified")
+                        await context.GetStringAsync("User_Info_IsVerified")
                     ) : null
                 );
 
@@ -86,38 +90,38 @@ namespace CraftBot.Commands.Features
                 {
                     DiscordMember member = await context.Guild.GetMemberAsync(user.Id);
 
-                    builder.AddSection(null, context.GetString("User_Info_MemberInformation"), !string.IsNullOrWhiteSpace(member.Nickname) ?
+                    builder.AddSection(null, await context.GetStringAsync("User_Info_MemberInformation"), !string.IsNullOrWhiteSpace(member.Nickname) ?
                         new MaterialEmbedListTile(
                             "pencil",
-                            context.GetString("User_Info_Nickname"),
+                            await context.GetStringAsync("User_Info_Nickname"),
                             member.Nickname
                         ) : null,
                         new MaterialEmbedListTile(
                             "calendar-plus",
-                            context.GetString("User_Info_MemberSince_Title"),
-                            string.Format(context.GetString("User_Info_MemberSince_Value"), member.JoinedAt.ToString())
+                            await context.GetStringAsync("User_Info_MemberSince_Title"),
+                            string.Format(await context.GetStringAsync("User_Info_MemberSince_Value"), member.JoinedAt.ToString())
                         ),
                         new MaterialEmbedListTile(
                             member.IsOwner,
-                            context.GetString("User_Info_IsOwner")
+                            await context.GetStringAsync("User_Info_IsOwner")
                         )
                     );
                 }
 
-                builder.AddSection(null, context.GetString("GeneralTerms_BotRelated"),
+                builder.AddSection(null, await context.GetStringAsync("GeneralTerms_BotRelated"),
                     new MaterialEmbedListTile(
-                        user.QuotingEnabled(),
-                        context.GetString("User_Info_Quoting")
+                        await user.IsQuotingEnabledAsync(),
+                        await context.GetStringAsync("User_Info_Quoting")
                     ),
                     new MaterialEmbedListTile(
-                        user.DelayDeleteEnabled(),
-                        context.GetString("User_Info_DelayDelete")
+                        await user.GetDelayDeletingAsync(),
+                        await context.GetStringAsync("User_Info_DelayDelete")
                     )
                 );
 
                 if (user.IsCurrent)
                 {
-                    builder.WithFooter(context.GetString("User_Info_ThatsMe"));
+                    builder.WithFooter(await context.GetStringAsync("User_Info_ThatsMe"));
                 }
 
                 await context.RespondAsync(embed: builder.Build());

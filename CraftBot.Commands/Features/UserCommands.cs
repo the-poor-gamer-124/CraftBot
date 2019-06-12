@@ -44,8 +44,6 @@ namespace CraftBot.Commands.Features
                     user = context.User;
                 }
 
-                bool isMember = context.Guild.Members.Any(m => m.Value.Id == user.Id);
-
                 var builder = new MaterialEmbedBuilder(context.Client);
                 builder.WithTitle($"{user.Username} / {context.GetString("GeneralTerms_Information")}", user.AvatarUrl);
 
@@ -83,6 +81,7 @@ namespace CraftBot.Commands.Features
                     ) : null
                 );
 
+                bool isMember = context.Guild.Members.Any(m => m.Value.Id == user.Id);
                 if (isMember)
                 {
                     DiscordMember member = await context.Guild.GetMemberAsync(user.Id);
@@ -121,7 +120,7 @@ namespace CraftBot.Commands.Features
                     builder.WithFooter(context.GetString("User_Info_ThatsMe"));
                 }
 
-                _ = await context.RespondAsync(embed: builder.Build());
+                await context.RespondAsync(embed: builder.Build());
             }
 
             #endregion Public Methods

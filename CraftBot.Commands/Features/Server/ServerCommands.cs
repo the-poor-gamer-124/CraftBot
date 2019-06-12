@@ -75,10 +75,6 @@ namespace CraftBot.Commands.Features
 
                 builder.AddSection(null, context.GetString("GeneralTerms_BotRelated"),
                     new MaterialEmbedListTile(
-                        context.Guild.AAP().Value,
-                        context.GetString("Server_Info_AAP")
-                    ),
-                    new MaterialEmbedListTile(
                         context.Guild.ShitpostingEnabled().Value,
                         context.GetString("Server_Info_Shitposting")
                     )

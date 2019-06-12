@@ -27,6 +27,7 @@ namespace CraftBot.Commands.Features
             }
 
             [Command("delaydelete")]
+            [Aliases("dd", "delaydeleting","delete")]
             public async Task EnableDelayDelete(CommandContext ctx, bool enable)
             {
                 _ = ctx.User.DelayDeleteEnabled(enable);

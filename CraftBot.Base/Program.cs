@@ -150,6 +150,7 @@ namespace CraftBot.Base
         {
             var logConfig = new LoggingConfiguration();
             var logLayout = new BetterLayout();
+
             logConfig.AddTarget(new FileTarget("file")
             {
                 CreateDirs = true,
@@ -158,6 +159,7 @@ namespace CraftBot.Base
                 AutoFlush = true,
                 Layout = logLayout,
             });
+
             logConfig.AddTarget(new ColoredConsoleTarget("console")
             {
                 DetectConsoleAvailable = true,
@@ -183,10 +185,12 @@ namespace CraftBot.Base
 
             LogManager.GetCurrentClassLogger().Info("Starting");
 
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            LogManager.GetCurrentClassLogger().Info($"Set security protocol to {ServicePointManager.SecurityProtocol.ToString()}");
+
             CheckRequiredDirectories();
             LoadConfig();
 
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
             Client = new DiscordClient(new DiscordConfiguration()
             {

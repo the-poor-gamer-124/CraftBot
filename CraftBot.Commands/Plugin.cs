@@ -24,7 +24,6 @@ namespace CraftBot.Commands
                 Program.Client.MessageCreated += Quoting.DiscordClient_MessageCreated;
                 Program.Client.MessageCreated += Shitposting.DiscordClient_MessageCreated;
                 Program.Client.MessageCreated += DelayDelete.DiscordClient_MessageCreated;
-                Program.Client.MessageCreated += ServerLogging.DiscordClient_MessageCreated;
                 Program.Client.MessageCreated += SexBotProtection.MessageCreated;
                 Program.Client.Ready += async (e) =>
                 {

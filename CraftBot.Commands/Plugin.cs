@@ -20,7 +20,6 @@ namespace CraftBot.Commands
         {
             this.PluginRegistered += (s, ea) =>
             {
-                Program.Client.GuildMemberAdded += AlternateAccountProtection.DiscordClient_GuildMemberAdded;
                 Program.Client.MessageCreated += Quoting.DiscordClient_MessageCreated;
                 Program.Client.MessageCreated += Shitposting.DiscordClient_MessageCreated;
                 Program.Client.MessageCreated += DelayDelete.DiscordClient_MessageCreated;
